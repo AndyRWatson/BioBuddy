@@ -1,2 +1,1 @@
-# BioBuddy
-Plant buddy for terrarium
+# my version of a plant buddy for arduino

@@ -2,24 +2,32 @@
 #include <LiquidCrystal_I2C.h>
 #include <FastLED.h>
 #include <DHT.h>
+#include <EEPROM.h>
+
+#define DHT_PIN 2
+#define DHT_TYPE DHT11
+
+#define RELAY_PIN   3
+
 #define LED_PIN     5
-#define NUM_LEDS    5
+#define NUM_LEDS    7
 
-#define DHTPIN 2
-#define DHTTYPE DHT11
-#define SensorPin A0 
+#define MOISTURE_PIN A0 
+float moisture_high;
+float moisture_low;
 
-DHT dht(DHTPIN,DHTTYPE);
+DHT dht(DHT_PIN,DHT_TYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+CRGB leds[NUM_LEDS];
 
 int brightness = 255;
 static char temperature[10];
 static char humidity[10];
 static char moisture[10];
-CRGB leds[NUM_LEDS];
 
 
 void setup() {
+ 
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(brightness);
   Serial.begin(115200);
@@ -27,6 +35,10 @@ void setup() {
   Serial.println("DHT11 Humidity & temperature Sensor\n\n");
   //initialize the liquid crystal library
   dht.begin();
+
+  pinMode(RELAY_PIN,OUTPUT);
+  digitalWrite(RELAY_PIN,HIGH);
+  
   lcd.init();
   lcd.backlight();
   lcd.setCursor(0,0);
@@ -37,8 +49,22 @@ void loop() {
   getTemp();
   getMoisture();
   setLCDText();
+  //closeRelay();
+  //delay(5000);
+  //openRelay();
   delay(5000);
   //looplights();
+}
+
+void openRelay(){
+  digitalWrite(11,HIGH); 
+  Serial.println("RELAY OPEN (HIGH)");
+ 
+}
+
+void closeRelay(){
+  digitalWrite(RELAY_PIN,LOW);
+  Serial.println("RELAY CLOSED (LOW)");
 }
 
 void setLCDText() {
@@ -94,7 +120,7 @@ float h = dht.readHumidity();
 }
 
 void getMoisture() {
-  float m = analogRead(SensorPin);
+  float m = analogRead(MOISTURE_PIN);
   dtostrf(m,3,0,moisture);
 
   Serial.print("Moisture: ");
@@ -230,4 +256,43 @@ void legs()
         
     FastLED.show();
     
+}
+
+boolean restoreConfig() {
+  // EPROM data
+  // moisture low  float 3
+  // moisture high float 3
+
+  String m_low="";
+  String m_high="";
+  Serial.println("Reading EEPROM...");
+  if (EEPROM.read(0) != 0) {
+    for (int i = 0; i < 3; ++i) {
+      m_low += char(EEPROM.read(i));
+    }
+    for (int i = 4; i < 6; ++i) {
+      m_high += char(EEPROM.read(i));
+    }
+    Serial.print("Low: ");
+    Serial.println(m_low);
+    Serial.print("High: ");
+    Serial.println(m_high);
+    return true;
+  }
+  else {
+    Serial.println("Config not found.");
+    return false;
+  }
+}
+
+void configWrite(){
+//       for (int i = 0; i < ssid.length(); ++i) {
+//        EEPROM.write(i, ssid[i]);
+//      }
+//      Serial.println("Writing Password to EEPROM...");
+//      for (int i = 0; i < pass.length(); ++i) {
+//        EEPROM.write(32 + i, pass[i]);
+//      }
+//      EEPROM.commit();
+  
 }
