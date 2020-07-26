@@ -1,1 +1,1 @@
-# my version of a plant buddy for arduino
+# my terrarium automated plant buddy for arduino
