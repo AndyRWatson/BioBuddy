@@ -1,3 +1,3 @@
-# my terrarium automated plant buddy for arduino
+# my terrarium automated biobuddy plant monitor for arduino
 
 ![alt text](BioBuddy.png)
